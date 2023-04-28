@@ -1,0 +1,22 @@
+services:
+  app:
+    image: ubuntu:jammy
+    command:
+      - '/bin/bash'
+      - '-c'
+      - 'sleep infinity'
+    networks:
+      - default
+      - test
+    depends_on:
+      - db
+
+  db:
+    image: ubuntu:jammy
+    command:
+      - '/bin/bash'
+      - '-c'
+      - 'sleep infinity'
+
+networks:
+  test: ~

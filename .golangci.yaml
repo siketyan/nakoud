@@ -1,0 +1,32 @@
+run:
+  concurrency: 4
+  tests: true
+
+linters:
+  enable-all: true
+  disable:
+    - ireturn
+    - godox
+    - nilnil
+
+    # Deprecated
+    - deadcode
+    - exhaustivestruct
+    - golint
+    - ifshort
+    - interfacer
+    - maligned
+    - nosnakecase
+    - scopelint
+    - structcheck
+    - varcheck
+
+linters-settings:
+  gci:
+    custom-order: true
+    sections:
+      - standard
+      - default
+      - prefix(github.com/siketyan/nakoud)
+      - blank
+      - dot
