@@ -4,8 +4,7 @@ import (
 	"io"
 )
 
-type Client interface {
-}
+type Client interface{}
 
 type Connection interface {
 	io.Closer

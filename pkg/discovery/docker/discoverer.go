@@ -1,5 +1,3 @@
 package docker
 
-type Discoverer struct {
-
-}
+type Discoverer struct{}

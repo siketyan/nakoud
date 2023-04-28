@@ -1,12 +1,12 @@
 package http
 
 import (
+	"fmt"
 	"net"
 
 	"github.com/rs/zerolog/log"
 
 	"github.com/siketyan/nakoud/pkg/proto/tcp"
-	"github.com/siketyan/nakoud/pkg/proxy"
 )
 
 type Proxy struct {
@@ -14,9 +14,9 @@ type Proxy struct {
 }
 
 func NewProxy(address string) (*Proxy, error) {
-	addr, err := net.ResolveTCPAddr(tcp.NetworkTcp, address)
+	addr, err := net.ResolveTCPAddr(tcp.NetworkTCP, address)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to resolve the TCP address: %w", err)
 	}
 
 	return &Proxy{
@@ -24,14 +24,10 @@ func NewProxy(address string) (*Proxy, error) {
 	}, nil
 }
 
-func (p *Proxy) AsProxy() proxy.Proxy {
-	return p
-}
-
 func (p *Proxy) Run() error {
-	listener, err := net.ListenTCP(tcp.NetworkTcp, p.addr)
+	listener, err := net.ListenTCP(tcp.NetworkTCP, p.addr)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to start listening on a TCP socket: %w", err)
 	}
 
 	defer func() {

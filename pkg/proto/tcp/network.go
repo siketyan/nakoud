@@ -1,7 +1,7 @@
 package tcp
 
 const (
-	NetworkTcp  = "tcp"
-	NetworkTcp4 = "tcp4"
-	NetworkTcp6 = "tcp6"
+	NetworkTCP  = "tcp"
+	NetworkTCP4 = "tcp4"
+	NetworkTCP6 = "tcp6"
 )

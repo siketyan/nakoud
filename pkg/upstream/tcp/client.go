@@ -1,6 +1,7 @@
 package tcp
 
 import (
+	"fmt"
 	"net"
 
 	"github.com/rs/zerolog/log"
@@ -21,12 +22,12 @@ func (c *Client) Connect() (*Connection, error) {
 
 	addr, err := net.ResolveTCPAddr("tcp", c.addr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to resolve the TCP address: %w", err)
 	}
 
 	conn, err := net.DialTCP("tcp", nil, addr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to start a TCP connection: %w", err)
 	}
 
 	return &Connection{

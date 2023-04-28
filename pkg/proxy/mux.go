@@ -26,10 +26,6 @@ func (m *Mux) With(p Proxy) *Mux {
 	return m
 }
 
-func (m *Mux) AsProxy() Proxy {
-	return m
-}
-
 func (m *Mux) Run() error {
 	waitGroup := sync.WaitGroup{}
 	waitGroup.Add(len(m.proxies))
