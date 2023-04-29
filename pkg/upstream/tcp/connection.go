@@ -48,11 +48,11 @@ func (c *Connection) Pipe(reader io.Reader, writer io.Writer) error {
 }
 
 func (c *Connection) Close() error {
-	log.Debug().Msg("Upstream connection closed")
-
 	if err := c.conn.Close(); err != nil {
 		return fmt.Errorf("failed to close TCP connection: %w", err)
 	}
+
+	log.Debug().Msg("Upstream connection closed")
 
 	return nil
 }

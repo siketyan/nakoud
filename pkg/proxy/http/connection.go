@@ -10,17 +10,13 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/rs/zerolog/log"
-
 	"github.com/siketyan/nakoud/pkg/discovery"
 	"github.com/siketyan/nakoud/pkg/upstream"
-	"github.com/siketyan/nakoud/pkg/upstream/tcp"
+	httpUpstream "github.com/siketyan/nakoud/pkg/upstream/http"
+	tcpUpstream "github.com/siketyan/nakoud/pkg/upstream/tcp"
 )
 
-var (
-	ErrMalformedRequest    = errors.New("malformed HTTP request")
-	ErrNoUpstreamAvailable = errors.New("no upstream is available for the FQDN")
-)
+var ErrNoUpstreamAvailable = errors.New("no upstream is available for the FQDN")
 
 func writeHeadResponse(writer io.Writer, statusCode int) error {
 	//nolint:exhaustruct
@@ -65,13 +61,7 @@ func NewConnection(inner *net.TCPConn, discoverer discovery.Discoverer) *Connect
 	}
 }
 
-func (c *Connection) connectUpstream(ctx context.Context, request *http.Request) (upstream.Connection, *httpError) {
-	if request.Method != http.MethodConnect {
-		return nil, newErrorResponse(http.StatusMethodNotAllowed, ErrMalformedRequest)
-	}
-
-	log.Info().Any("Request", request).Msg("Read a HTTP request")
-
+func (c *Connection) connectTCPUpstream(ctx context.Context, request *http.Request) (upstream.Connection, *httpError) {
 	fqdn, portString, err := net.SplitHostPort(request.Host)
 	if err != nil {
 		return nil, newErrorResponse(http.StatusBadRequest, fmt.Errorf("malformed host: %w", err))
@@ -91,7 +81,7 @@ func (c *Connection) connectUpstream(ctx context.Context, request *http.Request)
 		return nil, newErrorResponse(http.StatusNotFound, ErrNoUpstreamAvailable)
 	}
 
-	connection, err := tcp.NewClient(address.AsTCP(uint16(port))).Connect()
+	connection, err := tcpUpstream.NewClient(address.AsTCP(uint16(port))).Connect()
 	if err != nil {
 		return nil, newErrorResponse(
 			http.StatusBadGateway,
@@ -102,31 +92,101 @@ func (c *Connection) connectUpstream(ctx context.Context, request *http.Request)
 	return connection, nil
 }
 
+func (c *Connection) connectHTTPUpstream(ctx context.Context, request *http.Request) (upstream.Connection, *httpError) {
+	url := request.URL
+
+	address, err := c.discoverer.Discover(ctx, url.Hostname())
+	if err != nil {
+		return nil, newErrorResponse(http.StatusBadGateway, fmt.Errorf("failed to discover upstream: %w", err))
+	}
+
+	if address == nil {
+		return nil, newErrorResponse(http.StatusNotFound, ErrNoUpstreamAvailable)
+	}
+
+	// HACK: Clear the request URI to treat this as a client request
+	request.RequestURI = ""
+
+	if url.Port() == "" {
+		url.Host = address.String()
+	} else {
+		url.Host = fmt.Sprintf("%s:%s", address.String(), url.Port())
+	}
+
+	connection, err := httpUpstream.NewClientWithDefaultTransport(request).Connect()
+	if err != nil {
+		return nil, newErrorResponse(
+			http.StatusBadGateway,
+			fmt.Errorf("failed to connect to the upstream: %w", err),
+		)
+	}
+
+	return connection, nil
+}
+
+func (c *Connection) connectUpstream(ctx context.Context, request *http.Request) (upstream.Connection, error) {
+	if request.Method == http.MethodConnect {
+		connection, err := c.connectTCPUpstream(ctx, request)
+		if err != nil {
+			_ = writeHeadResponse(c.inner, err.statusCode)
+
+			return nil, fmt.Errorf("failed to connect to the upstream: %w", err)
+		}
+
+		if err := writeHeadResponse(c.inner, http.StatusOK); err != nil {
+			return nil, err
+		}
+
+		return connection, nil
+	}
+
+	connection, err := c.connectHTTPUpstream(ctx, request)
+	if err != nil {
+		_ = writeHeadResponse(c.inner, err.statusCode)
+
+		return nil, fmt.Errorf("failed to connect to the upstream: %w", err)
+	}
+
+	return connection, nil
+}
+
 func (c *Connection) Handle(ctx context.Context) error {
 	reader := bufio.NewReader(c.inner)
 
-	request, err := http.ReadRequest(reader)
-	if err != nil {
-		return fmt.Errorf("failed to read a HTTP request: %w", err)
-	}
+	for {
+		request, err := http.ReadRequest(reader)
+		if err != nil {
+			// Handles the client disconnects from the proxy.
+			if errors.Is(err, io.EOF) {
+				break
+			}
 
-	connection, httpErr := c.connectUpstream(ctx, request)
-	if err != nil {
-		_ = writeHeadResponse(c.inner, httpErr.statusCode)
+			return fmt.Errorf("failed to read a HTTP request: %w", err)
+		}
 
-		return fmt.Errorf("failed to connect to the upstream: %w", httpErr)
-	}
+		connection, err := c.connectUpstream(ctx, request)
+		if err != nil {
+			return err
+		}
 
-	defer func() {
+		if err := connection.Pipe(c.inner, c.inner); err != nil {
+			return fmt.Errorf("failed to pipe between upstream and downstream: %w", err)
+		}
+
 		_ = connection.Close()
-	}()
 
-	if err := writeHeadResponse(c.inner, http.StatusOK); err != nil {
-		return err
+		// To reuse the proxy connection for another usages, keeps alive the HTTP connection if needed.
+		if request.Header.Get("Proxy-Connection") != "keep-alive" {
+			break
+		}
 	}
 
-	if err := connection.Pipe(c.inner, c.inner); err != nil {
-		return fmt.Errorf("failed to pipe between upstream and downstream: %w", err)
+	return nil
+}
+
+func (c *Connection) Close() error {
+	if err := c.inner.Close(); err != nil {
+		return fmt.Errorf("failed to close the TCP connection: %w", err)
 	}
 
 	return nil

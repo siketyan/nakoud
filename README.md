@@ -86,7 +86,8 @@ Welcome to nakoud!
 
 There are more things to do:
 
-- [ ] Other HTTP methods support than CONNECT method
+- [x] Other HTTP methods support than CONNECT method\
+- [ ] Intermediate TLS certificate
 - [ ] Automatic FQDN without labeling (`<container>.nakoud.local` or something)
 - [ ] Docker Compose support (`<service>.<project>.nakoud.local` or something)
 - [ ] HTTPS, SOCKS proxy

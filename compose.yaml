@@ -1,6 +1,8 @@
 services:
   proxy:
     build: .
+    command:
+      - '--verbose'
     networks:
       - nakoud
     ports:

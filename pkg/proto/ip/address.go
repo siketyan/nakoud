@@ -26,3 +26,7 @@ func ParseAddress(address string, network *net.IPNet) (*Address, error) {
 func (a *Address) AsTCP(port uint16) *net.TCPAddr {
 	return net.TCPAddrFromAddrPort(netip.AddrPortFrom(a.inner, port))
 }
+
+func (a *Address) String() string {
+	return a.inner.String()
+}
