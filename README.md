@@ -21,6 +21,10 @@ flowchart LR
     end
 ```
 
+> **Warning**  
+> This product is still in development and for development environment.
+> Do not use in any production environment.
+
 ## Getting Started
 
 ### Run the proxy
@@ -90,7 +94,7 @@ Welcome to nakoud!
 
 There are more things to do:
 
-- [x] Other HTTP methods support than CONNECT method\
+- [x] Other HTTP methods support than CONNECT method
 - [ ] Intermediate TLS certificate
 - [ ] Automatic FQDN without labeling (`<container>.nakoud.local` or something)
 - [ ] Docker Compose support (`<service>.<project>.nakoud.local` or something)
