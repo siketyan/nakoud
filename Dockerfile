@@ -11,5 +11,9 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 
 FROM gcr.io/distroless/static-debian11
 
+LABEL org.opencontainers.image.source="https://github.com/siketyan/nakoud"
+LABEL org.opencontainers.image.description="Access your Docker containers easily without port forwarding"
+LABEL org.opencontainers.image.licenses=MIT
+
 COPY --from=builder /bin/proxy /bin/nakoud-proxy
 ENTRYPOINT ["/bin/nakoud-proxy", "--bind", "0.0.0.0:8080"]
