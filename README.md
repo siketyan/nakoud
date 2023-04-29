@@ -62,7 +62,7 @@ Use telnet or some TCP client to test the connection.
 ```shell
 telnet localhost:8080
 ```
-Once you connected to the nakoud proxy, type these to request `/` from nginx (`+` is what your type, `-` is what you receive):
+Once you connected to the nakoud proxy, type these to request `/` from nginx (`+` is what you type, `-` is what you receive):
 
 ```diff
 + CONNECT nginx.nakoud.local:80 HTTP/1.1
