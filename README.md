@@ -1,5 +1,8 @@
 # nakoud
 
+[![go](https://github.com/siketyan/nakoud/actions/workflows/go.yaml/badge.svg)](https://github.com/siketyan/nakoud/actions/workflows/go.yaml)
+[![docker](https://github.com/siketyan/nakoud/actions/workflows/docker.yaml/badge.svg)](https://github.com/siketyan/nakoud/actions/workflows/docker.yaml)
+
 Access your Docker containers easily without port forwarding
 
 ```mermaid
