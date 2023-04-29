@@ -10,10 +10,11 @@ flowchart LR
     containerB[Container B]
     
     client -- HTTP/1.1 CONNECT --> nakoud
+    client -- HTTP/1.1 GET --> nakoud
     
     subgraph network [Docker Network]
         nakoud -- TCP --> containerA
-        nakoud -- TCP --> containerB
+        nakoud -- HTTP --> containerB
     end
 ```
 
