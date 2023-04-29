@@ -9,7 +9,7 @@ insert_final_newline = true
 max_line_length = 120
 trim_trailing_whitespace = true
 
-[*.go]
+[{*.go,Makefile}]
 indent_size = unset
 indent_style = tab
 
