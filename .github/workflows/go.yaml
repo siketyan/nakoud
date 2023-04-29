@@ -9,8 +9,11 @@ on:
       - main
 
 jobs:
-  checks:
+  build:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      actions: write
     steps:
       - uses: actions/checkout@v3
 
@@ -23,4 +26,9 @@ jobs:
           version: 'v1.52.2'
 
       - name: Build
-        run: go build ./...
+        run: make build
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: nakoud-proxy
+          path: ./bin/nakoud-proxy
