@@ -1,9 +1,11 @@
 package discovery
 
 import (
+	"context"
+
 	"github.com/siketyan/nakoud/pkg/upstream"
 )
 
 type Discoverer interface {
-	Discover(host []string) (upstream.Client, error)
+	Discover(ctx context.Context, host []string) (upstream.Client, error)
 }
