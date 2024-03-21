@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/daixiang0/gci v0.10.1
-	github.com/docker/docker v24.0.7+incompatible
+	github.com/docker/docker v24.0.9+incompatible
 	github.com/rs/zerolog v1.29.1
 	github.com/samber/lo v1.38.1
 	github.com/spf13/cobra v1.7.0
